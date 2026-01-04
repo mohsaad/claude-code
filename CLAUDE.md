@@ -67,8 +67,8 @@ cargo fmt
 - Includes path validation to prevent directory traversal
 
 **`src/tools/`** - Tool execution framework
-- `definitions.rs` - Tool schema definitions (read_file, write_file, list_files)
-- `executor.rs` - Tool execution logic with permission checks
+- `definitions.rs` - Tool schema definitions (read_file, write_file, edit_file, list_files, execute_command)
+- `executor.rs` - Tool execution logic with permission checks and command execution
 - `permissions.rs` - y/n/t permission prompts using `dialoguer`
 
 ### Key Design Patterns
@@ -83,13 +83,30 @@ cargo fmt
 
 ## Testing
 
+### Automated Tests
+
+Run the test suite with `cargo test`. The project includes:
+
+**Unit Tests (16 tests):**
+- `src/fs/operations.rs` - File operations, path validation
+- `src/config/env.rs` - API key loading from environment
+- `src/tools/definitions.rs` - Tool schema validation
+
+**Integration Tests (4 tests):**
+- `tests/integration_tests.rs` - End-to-end workflows, security checks
+
+All tests use temporary directories for isolation and cleanup.
+
+### Manual Testing
+
 A test web application is available in `test-app/index.html` for validating file operations.
 
-See [TESTING.md](TESTING.md) for comprehensive test scenarios:
+See [TESTING.md](TESTING.md) for comprehensive manual test scenarios:
 - Reading files
 - Writing files with permission system
 - Listing directories
 - Trust mode verification
+- Command execution
 
 ## Configuration
 
@@ -102,17 +119,19 @@ ANTHROPIC_API_KEY=your_key_here
 
 **Completed:**
 - ✅ Basic CLI with REPL mode
-- ✅ Claude API client with tool use support
+- ✅ Claude API client with tool use support and system messages
 - ✅ API key configuration
-- ✅ File operations module (read, write, list, validate)
-- ✅ Tool definitions (read_file, write_file, list_files)
+- ✅ File operations module (read, write, edit, list, validate)
+- ✅ Tool definitions (read_file, write_file, edit_file, list_files, execute_command)
 - ✅ Tool executor with permission system
 - ✅ Full conversation loop with tool execution
 - ✅ Trust mode (session-based)
+- ✅ Conversation history (maintained across REPL prompts)
+- ✅ Command execution with safety checks
 
 **To Implement:**
 - ⏳ Trust mode persistence to file (currently only lasts for session)
-- ⏳ Conversation history management across sessions
+- ⏳ Conversation history persistence across sessions
 - ⏳ Code syntax highlighting in output
 - ⏳ Streaming API responses for real-time feedback
 

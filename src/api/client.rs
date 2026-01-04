@@ -8,6 +8,8 @@ const ANTHROPIC_VERSION: &str = "2023-06-01";
 const DEFAULT_MODEL: &str = "claude-3-5-sonnet-20241022";
 const MAX_TOKENS: u32 = 4096;
 
+const SYSTEM_MESSAGE: &str = "You are a helpful coding assistant. You have access to tools to read, write, and edit files, list directories, and execute shell commands. Always explain what you're doing before using tools. Be concise and focused on solving the user's coding tasks.";
+
 pub struct ClaudeClient {
     client: Client,
     api_key: String,
@@ -31,6 +33,7 @@ impl ClaudeClient {
             max_tokens: MAX_TOKENS,
             messages,
             tools,
+            system: Some(SYSTEM_MESSAGE.to_string()),
         };
 
         let response = self
