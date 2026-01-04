@@ -67,8 +67,8 @@ cargo fmt
 - Includes path validation to prevent directory traversal
 
 **`src/tools/`** - Tool execution framework
-- `definitions.rs` - Tool schema definitions (read_file, write_file, list_files)
-- `executor.rs` - Tool execution logic with permission checks
+- `definitions.rs` - Tool schema definitions (read_file, write_file, edit_file, list_files, execute_command)
+- `executor.rs` - Tool execution logic with permission checks and command execution
 - `permissions.rs` - y/n/t permission prompts using `dialoguer`
 
 ### Key Design Patterns
@@ -102,17 +102,19 @@ ANTHROPIC_API_KEY=your_key_here
 
 **Completed:**
 - ✅ Basic CLI with REPL mode
-- ✅ Claude API client with tool use support
+- ✅ Claude API client with tool use support and system messages
 - ✅ API key configuration
-- ✅ File operations module (read, write, list, validate)
-- ✅ Tool definitions (read_file, write_file, list_files)
+- ✅ File operations module (read, write, edit, list, validate)
+- ✅ Tool definitions (read_file, write_file, edit_file, list_files, execute_command)
 - ✅ Tool executor with permission system
 - ✅ Full conversation loop with tool execution
 - ✅ Trust mode (session-based)
+- ✅ Conversation history (maintained across REPL prompts)
+- ✅ Command execution with safety checks
 
 **To Implement:**
 - ⏳ Trust mode persistence to file (currently only lasts for session)
-- ⏳ Conversation history management across sessions
+- ⏳ Conversation history persistence across sessions
 - ⏳ Code syntax highlighting in output
 - ⏳ Streaming API responses for real-time feedback
 

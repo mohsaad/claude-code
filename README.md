@@ -44,14 +44,29 @@ The agent has access to the following tools:
 
 - **read_file** - Reads file contents (no permission required)
 - **write_file** - Writes content to files (requires permission: y/n/t)
+- **edit_file** - Edits files by replacing specific text (requires permission: y/n/t)
 - **list_files** - Lists files in a directory (no permission required)
+- **execute_command** - Runs shell commands (requires permission: y/n/t)
+
+### Features
+
+- **Conversation History** - Maintains context across multiple prompts in REPL mode
+- **Permission System** - Asks before executing any write or execute operations
+- **Trust Mode** - Remember permissions for the session
+- **System Message** - Includes guidance for Claude to act as a coding assistant
+- **Colored Output** - Visual feedback for tool execution and results
 
 ### Permission System
 
-When the agent wants to modify files, it will ask for permission:
+When the agent wants to modify files or execute commands, it will ask for permission:
 - **[y]es** - Allow this one time
 - **[n]o** - Deny the operation
 - **[t]rust** - Allow this tool for the rest of the session
+
+### REPL Commands
+
+- `clear` or `/clear` - Clear conversation history
+- `exit` or `quit` - Exit the program
 
 ## Testing
 

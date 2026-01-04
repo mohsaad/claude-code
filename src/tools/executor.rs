@@ -42,16 +42,20 @@ impl ToolExecutor {
         match tool_name {
             "read_file" => self.execute_read_file(tool_input),
             "write_file" => self.execute_write_file(tool_input),
+            "edit_file" => self.execute_edit_file(tool_input),
             "list_files" => self.execute_list_files(tool_input),
+            "execute_command" => self.execute_command(tool_input),
             _ => anyhow::bail!("Unknown tool: {}", tool_name),
         }
     }
 
     fn needs_permission(&self, tool_name: &str) -> bool {
-        // write_file always needs permission unless trusted
+        // write/edit/execute operations need permission unless trusted
         // read_file and list_files don't need permission (read-only)
         match tool_name {
-            "write_file" => !self.trusted_tools.contains(&tool_name.to_string()),
+            "write_file" | "edit_file" | "execute_command" => {
+                !self.trusted_tools.contains(&tool_name.to_string())
+            }
             _ => false,
         }
     }
@@ -74,6 +78,40 @@ impl ToolExecutor {
                         content.to_string()
                     }
                 )
+            }
+            "edit_file" => {
+                let path = tool_input.get("path")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown");
+                let old_text = tool_input.get("old_text")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+                let new_text = tool_input.get("new_text")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+
+                format!("Edit file: {}\n\nReplace:\n{}\n\nWith:\n{}\n",
+                    path.bright_yellow(),
+                    old_text.bright_red(),
+                    new_text.bright_green()
+                )
+            }
+            "execute_command" => {
+                let command = tool_input.get("command")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown");
+                let description = tool_input.get("description")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+
+                if description.is_empty() {
+                    format!("Execute command: {}\n", command.bright_yellow())
+                } else {
+                    format!("Execute command: {}\nDescription: {}\n",
+                        command.bright_yellow(),
+                        description
+                    )
+                }
             }
             _ => format!("Execute {}: {:?}", tool_name, tool_input),
         }
@@ -109,6 +147,27 @@ impl ToolExecutor {
         Ok(format!("Successfully wrote {} bytes to {}", content.len(), path))
     }
 
+    fn execute_edit_file(&self, input: &Value) -> Result<String> {
+        let path = input.get("path")
+            .and_then(|v| v.as_str())
+            .context("Missing 'path' parameter")?;
+
+        let old_text = input.get("old_text")
+            .and_then(|v| v.as_str())
+            .context("Missing 'old_text' parameter")?;
+
+        let new_text = input.get("new_text")
+            .and_then(|v| v.as_str())
+            .context("Missing 'new_text' parameter")?;
+
+        operations::validate_path(path)?;
+        operations::edit_file(path, old_text, new_text)
+            .context(format!("Failed to edit file: {}", path))?;
+
+        println!("{}", format!("  ✓ Edited {}", path).green());
+        Ok(format!("Successfully edited {}", path))
+    }
+
     fn execute_list_files(&self, input: &Value) -> Result<String> {
         let directory = input.get("directory")
             .and_then(|v| v.as_str())
@@ -120,5 +179,34 @@ impl ToolExecutor {
 
         println!("{}", format!("  ✓ Listed {} files in {}", files.len(), directory).green());
         Ok(files.join("\n"))
+    }
+
+    fn execute_command(&self, input: &Value) -> Result<String> {
+        use std::process::Command;
+
+        let command = input.get("command")
+            .and_then(|v| v.as_str())
+            .context("Missing 'command' parameter")?;
+
+        // Execute command using sh -c for better compatibility
+        let output = Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .output()
+            .context(format!("Failed to execute command: {}", command))?;
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        let result = if output.status.success() {
+            println!("{}", format!("  ✓ Command succeeded (exit code: 0)").green());
+            format!("{}{}", stdout, stderr)
+        } else {
+            let exit_code = output.status.code().unwrap_or(-1);
+            println!("{}", format!("  ✗ Command failed (exit code: {})", exit_code).red());
+            format!("Exit code: {}\nStdout:\n{}\nStderr:\n{}", exit_code, stdout, stderr)
+        };
+
+        Ok(result)
     }
 }

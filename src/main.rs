@@ -38,7 +38,8 @@ async fn main() -> Result<()> {
 
     if let Some(prompt) = cli.prompt {
         // Run single prompt mode
-        run_prompt(&client, &mut executor, &prompt).await?;
+        let mut conversation_history = Vec::new();
+        run_prompt(&client, &mut executor, &mut conversation_history, &prompt).await?;
     } else {
         // Run REPL mode
         run_repl(&client).await?;
@@ -49,6 +50,7 @@ async fn main() -> Result<()> {
 
 async fn run_repl(client: &ClaudeClient) -> Result<()> {
     let mut executor = ToolExecutor::new();
+    let mut conversation_history: Vec<Message> = Vec::new();
 
     loop {
         print!("{} ", "›".bright_green().bold());
@@ -67,7 +69,14 @@ async fn run_repl(client: &ClaudeClient) -> Result<()> {
             break;
         }
 
-        if let Err(e) = run_prompt(client, &mut executor, input).await {
+        // Special command to clear history
+        if input == "clear" || input == "/clear" {
+            conversation_history.clear();
+            println!("{}", "Conversation history cleared".dimmed());
+            continue;
+        }
+
+        if let Err(e) = run_prompt(client, &mut executor, &mut conversation_history, input).await {
             eprintln!("{} {}", "Error:".bright_red().bold(), e);
         }
     }
@@ -75,21 +84,26 @@ async fn run_repl(client: &ClaudeClient) -> Result<()> {
     Ok(())
 }
 
-async fn run_prompt(client: &ClaudeClient, executor: &mut ToolExecutor, prompt: &str) -> Result<()> {
+async fn run_prompt(
+    client: &ClaudeClient,
+    executor: &mut ToolExecutor,
+    conversation_history: &mut Vec<Message>,
+    prompt: &str,
+) -> Result<()> {
     println!("\n{} {}", "You:".bright_blue().bold(), prompt);
 
-    // Build initial message
-    let mut messages = vec![Message {
+    // Add user message to conversation history
+    conversation_history.push(Message {
         role: "user".to_string(),
         content: MessageContent::Text(prompt.to_string()),
-    }];
+    });
 
     // Get available tools
     let tools = get_tools();
 
     // Conversation loop - handle tool use
     loop {
-        let response = client.send_message(messages.clone(), Some(tools.clone())).await?;
+        let response = client.send_message(conversation_history.clone(), Some(tools.clone())).await?;
 
         // Check if we have tool uses
         let mut has_tool_use = false;
@@ -130,18 +144,25 @@ async fn run_prompt(client: &ClaudeClient, executor: &mut ToolExecutor, prompt: 
             if !text_response.is_empty() {
                 println!("\n{} {}\n", "Claude:".bright_magenta().bold(), text_response);
             }
+
+            // Add assistant's final response to conversation history
+            conversation_history.push(Message {
+                role: "assistant".to_string(),
+                content: MessageContent::Blocks(response.content),
+            });
+
             break;
         }
 
         // If we have tool use, we need to send results back to Claude
         // Add assistant's response to conversation
-        messages.push(Message {
+        conversation_history.push(Message {
             role: "assistant".to_string(),
             content: MessageContent::Blocks(response.content),
         });
 
         // Add tool results as user message
-        messages.push(Message {
+        conversation_history.push(Message {
             role: "user".to_string(),
             content: MessageContent::Blocks(tool_results),
         });

@@ -12,6 +12,19 @@ pub fn write_file(path: &str, content: &str) -> Result<()> {
     Ok(())
 }
 
+pub fn edit_file(path: &str, old_text: &str, new_text: &str) -> Result<()> {
+    let content = read_file(path)?;
+
+    if !content.contains(old_text) {
+        anyhow::bail!("Text to replace not found in file");
+    }
+
+    let new_content = content.replace(old_text, new_text);
+    write_file(path, &new_content)?;
+
+    Ok(())
+}
+
 pub fn list_files(dir: &str) -> Result<Vec<String>> {
     let mut files = Vec::new();
 

@@ -6,7 +6,9 @@ pub fn get_tools() -> Vec<Tool> {
     vec![
         create_read_file_tool(),
         create_write_file_tool(),
+        create_edit_file_tool(),
         create_list_files_tool(),
+        create_execute_command_tool(),
     ]
 }
 
@@ -48,6 +50,31 @@ fn create_write_file_tool() -> Tool {
     }
 }
 
+fn create_edit_file_tool() -> Tool {
+    Tool {
+        name: "edit_file".to_string(),
+        description: "Edits a file by replacing specific text. More precise than write_file for making small changes. Provide the exact text to find and replace.".to_string(),
+        input_schema: json!({
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "The path to the file to edit"
+                },
+                "old_text": {
+                    "type": "string",
+                    "description": "The exact text to find and replace (must match exactly including whitespace)"
+                },
+                "new_text": {
+                    "type": "string",
+                    "description": "The new text to replace the old text with"
+                }
+            },
+            "required": ["path", "old_text", "new_text"]
+        }),
+    }
+}
+
 fn create_list_files_tool() -> Tool {
     Tool {
         name: "list_files".to_string(),
@@ -61,6 +88,27 @@ fn create_list_files_tool() -> Tool {
                 }
             },
             "required": ["directory"]
+        }),
+    }
+}
+
+fn create_execute_command_tool() -> Tool {
+    Tool {
+        name: "execute_command".to_string(),
+        description: "Executes a shell command and returns the output. Use this to run build commands, tests, or other operations. Commands will require user permission.".to_string(),
+        input_schema: json!({
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string",
+                    "description": "The shell command to execute"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "A brief description of what this command does"
+                }
+            },
+            "required": ["command"]
         }),
     }
 }
