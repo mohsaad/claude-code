@@ -70,9 +70,37 @@ When the agent wants to modify files or execute commands, it will ask for permis
 
 ## Testing
 
-A simple test web application is available in `test-app/index.html` for testing the agent's file operations.
+### Automated Tests
 
-See [TESTING.md](TESTING.md) for detailed test scenarios and verification steps.
+The project includes comprehensive automated tests:
+
+```bash
+# Run all tests
+cargo test
+
+# Run tests with output
+cargo test -- --nocapture
+
+# Run specific test
+cargo test test_edit_file
+```
+
+**Test Coverage:**
+- **Unit Tests** (16 tests)
+  - File operations (read, write, edit, list, validate)
+  - API key configuration
+  - Tool schema definitions
+- **Integration Tests** (4 tests)
+  - End-to-end file workflows
+  - Directory operations
+  - Security validation
+  - Multi-line editing
+
+### Manual Testing
+
+A simple test web application is available in `test-app/index.html` for manual testing of the agent's file operations.
+
+See [TESTING.md](TESTING.md) for detailed manual test scenarios and verification steps.
 
 ## Project Structure
 

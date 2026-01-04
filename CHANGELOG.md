@@ -17,6 +17,10 @@
 - **Enhanced Permission Formatting**: Improved visual feedback for permission requests
   - Color-coded diffs for edit operations
   - Clear command descriptions for execute operations
+- **Comprehensive Test Suite**: 20 automated tests covering all core functionality
+  - 16 unit tests for file operations, config, and tool definitions
+  - 4 integration tests for end-to-end workflows
+  - All tests use isolated temp directories for safety
 
 ### Changed
 - Updated README with new tools and features

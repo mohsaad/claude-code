@@ -112,3 +112,66 @@ fn create_execute_command_tool() -> Tool {
         }),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_tools_returns_all_tools() {
+        let tools = get_tools();
+        assert_eq!(tools.len(), 5);
+
+        let tool_names: Vec<String> = tools.iter().map(|t| t.name.clone()).collect();
+        assert!(tool_names.contains(&"read_file".to_string()));
+        assert!(tool_names.contains(&"write_file".to_string()));
+        assert!(tool_names.contains(&"edit_file".to_string()));
+        assert!(tool_names.contains(&"list_files".to_string()));
+        assert!(tool_names.contains(&"execute_command".to_string()));
+    }
+
+    #[test]
+    fn test_read_file_tool_schema() {
+        let tool = create_read_file_tool();
+        assert_eq!(tool.name, "read_file");
+        assert!(!tool.description.is_empty());
+
+        let schema = tool.input_schema;
+        assert_eq!(schema["type"], "object");
+        assert!(schema["properties"]["path"].is_object());
+        assert_eq!(schema["required"][0], "path");
+    }
+
+    #[test]
+    fn test_write_file_tool_schema() {
+        let tool = create_write_file_tool();
+        assert_eq!(tool.name, "write_file");
+
+        let schema = tool.input_schema;
+        assert!(schema["properties"]["path"].is_object());
+        assert!(schema["properties"]["content"].is_object());
+        assert_eq!(schema["required"].as_array().unwrap().len(), 2);
+    }
+
+    #[test]
+    fn test_edit_file_tool_schema() {
+        let tool = create_edit_file_tool();
+        assert_eq!(tool.name, "edit_file");
+
+        let schema = tool.input_schema;
+        assert!(schema["properties"]["path"].is_object());
+        assert!(schema["properties"]["old_text"].is_object());
+        assert!(schema["properties"]["new_text"].is_object());
+        assert_eq!(schema["required"].as_array().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn test_execute_command_tool_schema() {
+        let tool = create_execute_command_tool();
+        assert_eq!(tool.name, "execute_command");
+
+        let schema = tool.input_schema;
+        assert!(schema["properties"]["command"].is_object());
+        assert_eq!(schema["required"][0], "command");
+    }
+}

@@ -83,13 +83,30 @@ cargo fmt
 
 ## Testing
 
+### Automated Tests
+
+Run the test suite with `cargo test`. The project includes:
+
+**Unit Tests (16 tests):**
+- `src/fs/operations.rs` - File operations, path validation
+- `src/config/env.rs` - API key loading from environment
+- `src/tools/definitions.rs` - Tool schema validation
+
+**Integration Tests (4 tests):**
+- `tests/integration_tests.rs` - End-to-end workflows, security checks
+
+All tests use temporary directories for isolation and cleanup.
+
+### Manual Testing
+
 A test web application is available in `test-app/index.html` for validating file operations.
 
-See [TESTING.md](TESTING.md) for comprehensive test scenarios:
+See [TESTING.md](TESTING.md) for comprehensive manual test scenarios:
 - Reading files
 - Writing files with permission system
 - Listing directories
 - Trust mode verification
+- Command execution
 
 ## Configuration
 
